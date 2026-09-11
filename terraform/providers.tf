@@ -7,6 +7,12 @@ terraform {
       version = "~> 4.0"
     }
   }
+  backend "azurerm" {
+    resource_group_name  = "rg-storage-lab"
+    storage_account_name = "stlabterraformansible"
+    container_name       = "bo-lab"
+    key                  = "lab.terraform.tfstate"
+  }
 }
 
 provider "azurerm" {
