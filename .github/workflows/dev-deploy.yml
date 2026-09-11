@@ -57,64 +57,36 @@ jobs:
   #     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
   #     run: terraform apply -var-file="dev-vars.tfvars" -auto-approve -input=false
 
+
   ansible:
     name: 'Ansible Configuration'
     runs-on: ubuntu-latest
 
     #needs: terraform
 
-    env:
-      RAW_SSH_KEY: ""
+    container:
+      image: quay.io/ansible/awx-ee:latest
 
     steps:
     - name: Checkout Código
       uses: actions/checkout@v4
 
-    - name: Azure Login
-      uses: azure/login@v3
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Descargar llave privada desde Key Vault
-      uses: azure/cli@v2
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az keyvault secret show --name "debian-server-private-key" --vault-name "kv-learn-labs" --query value -o tsv > ${{ github.workspace }}/private_key.pem
-          chmod 600 ${{ github.workspace }}/private_key.pem
-
     - name: Configurar SSH Agent
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        ssh-add ${{ github.workspace }}/private_key.pem
-
-
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Ejecutar Ansible Playbook
       env:
+        AZURE_AUTH_SOURCE: env
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }} 
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
+        AZURE_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_TENANT: ${{ secrets.AZURE_TENANT_ID }}
       run: |
-        docker run --rm \
-          -v "${{ github.workspace }}:/workspace" \
-          -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" \
-          -e SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
-          -w /workspace \
-          -e AZURE_AUTH_SOURCE=env \
-          -e AZURE_SUBSCRIPTION_ID="$AZURE_SUBSCRIPTION_ID" \
-          -e AZURE_CLIENT_ID="$AZURE_CLIENT_ID" \
-          -e AZURE_TENANT_ID="$AZURE_TENANT_ID" \
-          -e AZURE_CLIENT_SECRET="$AZURE_CLIENT_SECRET" \
-          -e AZURE_SECRET="$AZURE_CLIENT_SECRET" \
-          -e AZURE_TENANT="$AZURE_TENANT_ID" \
-          quay.io/ansible/awx-ee:latest \
-          ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
-            -e "ansible_inventory_plugins=azure.azcollection.azure_rm,yaml,ini" \
-            --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
+        ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
+          -e "ansible_inventory_plugins=azure.azcollection.azure_rm,yaml,ini" \
+          --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
