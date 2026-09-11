@@ -82,9 +82,10 @@ jobs:
       with:
         azcliversion: latest
         inlineScript: |
-          az keyvault secret show --name "debian-server-private-key" --vault-name "kv-learn-labs" --query value -o tsv > private_key.pem
-          chmod 600 private_key.pem
+          az keyvault secret show --name "debian-server-private-key" --vault-name "kv-learn-labs" --query value -o tsv > ${{ github.workspace }}/private_key.pem
+          chmod 600 ${{ github.workspace }}/private_key.pem
 
+          
     - name: Ejecutar Ansible Playbook
       env:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -93,10 +94,8 @@ jobs:
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       run: |
         docker run --rm \
-          -v "${{ github.workspace }}:/github/workspace" \
-          -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" \
-          -e SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
-          -w /github/workspace \
+          -v "${{ github.workspace }}:/workspace" \
+          -w /workspace \
           -e AZURE_AUTH_SOURCE=env \
           -e AZURE_SUBSCRIPTION_ID="$AZURE_SUBSCRIPTION_ID" \
           -e AZURE_CLIENT_ID="$AZURE_CLIENT_ID" \
@@ -106,6 +105,6 @@ jobs:
           -e AZURE_TENANT="$AZURE_TENANT_ID" \
           quay.io/ansible/awx-ee:latest \
           ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
-            --private-key private_key.pem \
+            --private-key /workspace/private_key.pem \
             -e "ansible_inventory_plugins=azure.azcollection.azure_rm,yaml,ini" \
             --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
