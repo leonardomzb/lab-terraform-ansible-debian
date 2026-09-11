@@ -1,0 +1,111 @@
+name: 'Terraform - Ansible'
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # terraform:
+  #   name: 'Terraform Deploy'
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./terraform
+
+  #   env:
+  #     ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  #     ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  #     ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #     ARM_USE_OIDC: true
+
+  #   steps:
+  #   - name: Checkout Code
+  #     uses: actions/checkout@v4
+
+  #   - name: Azure Login
+  #     uses: azure/login@v3
+  #     with:
+  #       client-id: ${{ secrets.AZURE_CLIENT_ID }}
+  #       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+  #       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v3
+  #     with:
+  #       terraform_version: "1.15.8"
+
+  #   - name: 1. Prueba de Formato
+  #     run: terraform fmt -check
+
+  #   - name: Terraform Init
+  #     run: terraform init
+
+  #   - name: Terraform Validate
+  #     run: terraform validate
+
+  #   - name: Terraform Plan
+  #     run: terraform plan -var-file="dev-vars.tfvars" -input=false
+
+  #   - name: Terraform Apply
+  #     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #     run: terraform apply -var-file="dev-vars.tfvars" -auto-approve -input=false
+
+  ansible:
+    name: 'Ansible Configuration'
+    runs-on: ubuntu-latest
+
+    #needs: terraform
+
+    env:
+      RAW_SSH_KEY: ""
+
+    steps:
+    - name: Checkout Código
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v3
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Descargar llave privada desde Key Vault
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az keyvault secret show --name "debian-server-private-key" --vault-name "kv-learn-labs" --query value -o tsv > private_key.pem
+          chmod 600 private_key.pem
+
+    - name: Ejecutar Ansible Playbook
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }} 
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      run: |
+        docker run --rm \
+          -v "${{ github.workspace }}:/github/workspace" \
+          -v "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" \
+          -e SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
+          -w /github/workspace \
+          -e AZURE_AUTH_SOURCE=env \
+          -e AZURE_SUBSCRIPTION_ID="$AZURE_SUBSCRIPTION_ID" \
+          -e AZURE_CLIENT_ID="$AZURE_CLIENT_ID" \
+          -e AZURE_TENANT_ID="$AZURE_TENANT_ID" \
+          -e AZURE_CLIENT_SECRET="$AZURE_CLIENT_SECRET" \
+          -e AZURE_SECRET="$AZURE_CLIENT_SECRET" \
+          -e AZURE_TENANT="$AZURE_TENANT_ID" \
+          quay.io/ansible/awx-ee:latest \
+          ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
+            --private-key private_key.pem \
+            -e "ansible_inventory_plugins=azure.azcollection.azure_rm,yaml,ini" \
+            --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"

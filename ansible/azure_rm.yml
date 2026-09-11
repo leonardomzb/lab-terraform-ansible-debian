@@ -1,0 +1,13 @@
+plugin: azure.azcollection.azure_rm
+auth_source: env
+
+# Filtrando VM solo en grupo de recursos "rg-terra-ansible"
+include_vm_resource_groups:
+  - "rg-terra-ansible" 
+
+# Agrupa las VMs automaticamente segun su etiqueta 'rol'. En este caso "tag_debian_lab"
+# Necesario para el playbook de Ansible (hosts: tag_debian_lab)
+keyed_groups:
+  - key: tags.rol
+    prefix: tag
+    separator: "_"
