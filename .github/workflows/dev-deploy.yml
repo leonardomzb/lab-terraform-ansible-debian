@@ -66,6 +66,7 @@ jobs:
 
     container:
       image: quay.io/ansible/awx-ee:latest
+      options: --user root
 
     steps:
     - name: Checkout Código
