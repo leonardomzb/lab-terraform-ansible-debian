@@ -63,7 +63,7 @@
     - name: Crear un archivo de prueba de Backend remoto en Azure
       copy:
         content: "Prueba de Backend Remoto"
-        dest: ~/BackendRemotoTest.txt
+        dest: /home/debianadmin/BackendRemotoTest.txt
 
 
 
