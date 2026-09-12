@@ -37,18 +37,6 @@ module "nsg_ssh" {
       destination_port_range     = "22"
       source_address_prefix      = "*"
       destination_address_prefix = "*"
-    },
-    "Allow-SSH-Lab-Custom" = {
-      name                       = "Allow-SSH-Lab-Custom"
-      priority                   = 1100
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "5022"
-      source_address_prefix      = "*"
-      destination_address_prefix = "*"
-      description                = "Permitir entrada por puerto personalizado"
     }
   }
 

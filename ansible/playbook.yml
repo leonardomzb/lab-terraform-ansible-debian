@@ -5,17 +5,17 @@
   remote_user: debianadmin
   become: true 
   gather_facts: true
-  vars:
-    ssh_port: "5022"
+  # vars:
+  #   ssh_port: "5022"
 
   tasks:
-    - name: Cambiar el puerto por defecto de SSH
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^#?Port\s'
-        line: "Port {{ ssh_port }}"
-        state: present
-      notify: Reiniciar SSH
+    # - name: Cambiar el puerto por defecto de SSH
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/ssh/sshd_config
+    #     regexp: '^#?Port\s'
+    #     line: "Port {{ ssh_port }}"
+    #     state: present
+    #   notify: Reiniciar SSH
 
     - name: Bloquear el acceso SSH al usuario root
       ansible.builtin.lineinfile:
@@ -60,10 +60,10 @@
         dest: /var/www_welcome.txt
         mode: '0644'
 
-    - name: Crear un archivo de prueba de Backend remoto en Azure
-      copy:
-        content: "Prueba de Backend Remoto"
-        dest: ~/BackendRemotoTest.txt
+    # - name: Crear un archivo de prueba de Backend remoto en Azure
+    #   copy:
+    #     content: "Prueba de Backend Remoto"
+    #     dest: ~/BackendRemotoTest.txt
 
 
 
