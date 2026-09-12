@@ -60,10 +60,10 @@
         dest: /var/www_welcome.txt
         mode: '0644'
 
-    - name: Crear un archivo de prueba de Backend remoto en Azure
-      copy:
-        content: "Prueba de Backend Remoto"
-        dest: /home/debianadmin/BackendRemotoTest.txt
+    # - name: Crear un archivo de prueba de Backend remoto en Azure
+    #   copy:
+    #     content: "Prueba de Backend Remoto"
+    #     dest: /home/debianadmin/BackendRemotoTest.txt
 
 
 
