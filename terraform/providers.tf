@@ -12,6 +12,7 @@ terraform {
     storage_account_name = "stlabterraformansible"
     container_name       = "bo-lab"
     key                  = "lab.terraform.tfstate"
+    use_azuread_auth     = true
   }
 }
 
