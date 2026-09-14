@@ -94,5 +94,4 @@ jobs:
         AZURE_TENANT: ${{ secrets.AZURE_TENANT_ID }}
       run: |
         ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
-          -e "ansible_inventory_plugins=azure.azcollection.azure_rm,yaml,ini" \
           --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
