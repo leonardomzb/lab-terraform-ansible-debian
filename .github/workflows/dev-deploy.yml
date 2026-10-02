@@ -66,12 +66,12 @@ jobs:
     needs: terraform
 
     #image: quay.io/ansible/awx-ee:latest
-    container:
-      image: ghcr.io/leonardomzb/lab-terraform-ansible-debian/ansible-ee:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-      options: --user root
+    # container:
+    #   image: ghcr.io/leonardomzb/lab-terraform-ansible-debian/ansible-ee:latest
+    #   credentials:
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+    #   options: --user root
 
     steps:
     - name: Checkout Código
