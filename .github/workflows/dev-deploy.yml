@@ -84,14 +84,16 @@ jobs:
 
     - name: Ejecutar Ansible Playbook
       env:
-        AZURE_AUTH_SOURCE: env
+        # Indicamos que el método de autenticación es OIDC
+        AZURE_AUTH_SOURCE: github_actions
+        
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }} 
         AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-        AZURE_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT: ${{ secrets.AZURE_TENANT_ID }}
+        # Inyectamos las variables de token dinámico de GitHub
+        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
       run: |
         ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
           --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
