@@ -1,7 +1,8 @@
 
 # azure_rm.yml
 plugin: azure.azcollection.azure_rm
-auth_source: env
+
+auth_source: github_actions
 
 # Filtrando VM solo en grupo de recursos "rg-terra-ansible"
 include_vm_resource_groups:
