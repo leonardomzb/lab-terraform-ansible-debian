@@ -77,23 +77,20 @@ jobs:
     - name: Checkout Código
       uses: actions/checkout@v4
 
+    - name: Azure Login (OIDC)
+      uses: azure/login@v3
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
     - name: Configurar SSH Agent
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+    # 2. Tu comando de Ansible vuelve a ser una sola línea limpia
     - name: Ejecutar Ansible Playbook
-      env:
-        # Indicamos que el método de autenticación es OIDC
-        AZURE_AUTH_SOURCE: github_actions
-        
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }} 
-        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-        # Inyectamos las variables de token dinámico de GitHub
-        ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-        ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
       run: |
         ansible-playbook -i ansible/azure_rm.yml ansible/playbook.yml \
           --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
