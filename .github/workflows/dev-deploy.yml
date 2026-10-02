@@ -66,12 +66,12 @@ jobs:
     needs: terraform
 
     #image: quay.io/ansible/awx-ee:latest
-    # container:
-    #   image: ghcr.io/leonardomzb/lab-terraform-ansible-debian/ansible-ee:latest
-    #   credentials:
-    #     username: ${{ github.actor }}
-    #     password: ${{ secrets.GITHUB_TOKEN }}
-    #   options: --user root
+    container:
+      image: ghcr.io/leonardomzb/lab-terraform-ansible-debian/ansible-ee:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --user root
 
     steps:
     - name: Checkout Código
@@ -89,7 +89,6 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # 2. Tu comando de Ansible vuelve a ser una sola línea limpia
     - name: Ejecutar Ansible Playbook
       env:
         AZURE_AUTH_SOURCE: cli
